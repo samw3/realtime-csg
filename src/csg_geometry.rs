@@ -1,10 +1,17 @@
 //! Geometry
 
-
 use bevy::math::{IVec3, Vec3};
+use std::hash::{Hash, Hasher};
+use std::ops::Sub;
 
 pub const DISTANCE_EPSILON: f32 = 0.0001;
 pub const NORMAL_EPSILON: f64 = 1.0 / 65535.0;
+
+pub enum PlaneSideResult {
+    Outside,
+    Inside,
+    Intersects,
+}
 
 #[derive(Clone)]
 pub struct Aabb {
@@ -19,17 +26,22 @@ impl Default for Aabb {
 }
 
 impl Aabb {
-    pub fn origin(&self) -> IVec3 { (self.max + self.min) / 2 }
-    pub fn extent(&self) -> IVec3 { self.max - self.min }
+    pub fn origin(&self) -> IVec3 {
+        (self.max + self.min) / 2
+    }
+    pub fn extent(&self) -> IVec3 {
+        self.max - self.min
+    }
 
     pub fn new() -> Self {
-        Self { min: IVec3::splat(i32::MAX), max: IVec3::splat(i32::MIN) }
+        Self {
+            min: IVec3::splat(i32::MAX),
+            max: IVec3::splat(i32::MIN),
+        }
     }
 
     pub fn is_empty(&self) -> bool {
-        self.min.x >= self.max.x ||
-            self.min.y >= self.max.y ||
-            self.min.z >= self.max.z
+        self.min.x >= self.max.x || self.min.y >= self.max.y || self.min.z >= self.max.z
     }
 
     pub fn clear(&mut self) {
@@ -37,19 +49,23 @@ impl Aabb {
         self.max = IVec3::splat(i32::MIN);
     }
 
-    pub fn add_vec3(&mut self, inp: &Vec3)
-    {
-        if !inp.is_finite() || inp.is_nan() { panic!("Bad input Vec3"); }
+    pub fn add_vec3(&mut self, inp: Vec3) {
+        if !inp.is_finite() || inp.is_nan() {
+            panic!("Bad input Vec3");
+        }
         self.min = self.min.min(inp.floor().as_ivec3());
         self.max = self.max.max(inp.ceil().as_ivec3());
     }
 
     pub fn add(&mut self, in_x: f32, in_y: f32, in_z: f32) {
-        self.add_vec3(&Vec3 { x: in_x, y: in_y, z: in_z });
+        self.add_vec3(Vec3 {
+            x: in_x,
+            y: in_y,
+            z: in_z,
+        });
     }
 
-    pub fn add_aabb(&mut self, inp: &Aabb)
-    {
+    pub fn add_aabb(&mut self, inp: &Aabb) {
         self.min = self.min.min(inp.min);
         self.max = self.max.max(inp.max);
     }
@@ -59,15 +75,18 @@ impl Aabb {
         self.max = bounds.max;
     }
 
-    pub fn translate(&mut self, by: &Vec3) {
+    pub fn translate(&mut self, by: Vec3) {
         self.min += by.floor().as_ivec3();
     }
 
-    pub fn translated(&mut self, by: &Vec3) -> Aabb {
-        Aabb { min: self.min + by.as_ivec3(), max: self.max + by.as_ivec3() }
+    pub fn translated(&mut self, by: Vec3) -> Aabb {
+        Aabb {
+            min: self.min + by.as_ivec3(),
+            max: self.max + by.as_ivec3(),
+        }
     }
 
-    pub fn set_translate(&mut self, by: &Aabb, translation: &Vec3) {
+    pub fn set_translate(&mut self, by: &Aabb, translation: Vec3) {
         self.min = by.min + translation.as_ivec3();
         self.max = by.max + translation.as_ivec3();
     }
@@ -76,22 +95,25 @@ impl Aabb {
         Aabb::is_outside_each_other(self, other)
     }
 
-    pub fn is_outside_each_other(left: &Aabb, right: &Aabb) -> bool
-    {
-        (left.max.x - right.min.x) < 0 || (left.min.x - right.max.x) > 0 ||
-            (left.max.y - right.min.y) < 0 || (left.min.y - right.max.y) > 0 ||
-            (left.max.z - right.min.z) < 0 || (left.min.z - right.max.z) > 0
+    pub fn is_outside_each_other(left: &Aabb, right: &Aabb) -> bool {
+        (left.max.x - right.min.x) < 0
+            || (left.min.x - right.max.x) > 0
+            || (left.max.y - right.min.y) < 0
+            || (left.min.y - right.max.y) > 0
+            || (left.max.z - right.min.z) < 0
+            || (left.min.z - right.max.z) > 0
     }
 
-    pub fn is_outside_translate(left: &Aabb, translation: &Vec3, right: &Aabb) -> bool
-    {
+    pub fn is_outside_translate(left: &Aabb, translation: Vec3, right: &Aabb) -> bool {
         let translation = translation.as_ivec3();
-        ((left.max.x + translation.x) - right.min.x) < 0 || ((left.min.x + translation.x) - right.max.x) > 0 ||
-            ((left.max.y + translation.y) - right.min.y) < 0 || ((left.min.y + translation.y) - right.max.y) > 0 ||
-            ((left.max.z + translation.z) - right.min.z) < 0 || ((left.min.z + translation.z) - right.max.z) > 0
+        ((left.max.x + translation.x) - right.min.x) < 0
+            || ((left.min.x + translation.x) - right.max.x) > 0
+            || ((left.max.y + translation.y) - right.min.y) < 0
+            || ((left.min.y + translation.y) - right.max.y) > 0
+            || ((left.max.z + translation.z) - right.min.z) < 0
+            || ((left.min.z + translation.z) - right.max.z) > 0
     }
 }
-
 
 pub struct HalfEdge {
     next_index: i16,
@@ -99,7 +121,6 @@ pub struct HalfEdge {
     vertex_index: i16,
     polygon_index: i16,
 }
-
 
 #[derive(Debug, Clone, Copy)]
 pub struct Plane {
@@ -109,15 +130,41 @@ pub struct Plane {
     d: f32,
 }
 
+impl Hash for Plane {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.a.to_bits().hash(state);
+        self.b.to_bits().hash(state);
+        self.c.to_bits().hash(state);
+        self.d.to_bits().hash(state);
+    }
+}
+
+impl PartialEq for Plane {
+    fn eq(&self, other: &Self) -> bool {
+        if self == other {
+            return true;
+        }
+        self.d == other.d && self.a == other.a && self.b == other.b && self.c == other.c
+    }
+}
+
 impl Plane {
-    pub fn get_normal(&self) -> Vec3 { Vec3 { x: self.a, y: self.b, z: self.c } }
-    pub fn set_normal(&mut self, normal: &Vec3) {
+    pub fn get_normal(&self) -> Vec3 {
+        Vec3 {
+            x: self.a,
+            y: self.b,
+            z: self.c,
+        }
+    }
+    pub fn set_normal(&mut self, normal: Vec3) {
         self.a = normal.x;
         self.b = normal.y;
         self.c = normal.z;
     }
 
-    pub fn point_on_plane(&self) -> Vec3 { self.get_normal() * self.d }
+    pub fn point_on_plane(&self) -> Vec3 {
+        self.get_normal() * self.d
+    }
     pub fn from_normal(normal: Vec3, d: f32) -> Self {
         Self {
             a: normal.x,
@@ -134,6 +181,49 @@ impl Plane {
     }
     pub fn distance_xyz(&self, x: f32, y: f32, z: f32) -> f32 {
         self.a * x + self.b * y + self.c * z - self.d
+    }
+
+    pub fn on_side_xyz(&self, x: f32, y: f32, z: f32) -> PlaneSideResult {
+        on_side(self.distance_xyz(x, y, z))
+    }
+
+    pub fn on_side_vec3(&self, vertex: Vec3) -> PlaneSideResult {
+        on_side(self.distance(vertex))
+    }
+
+    pub fn on_side(&self, bounds: Aabb) -> PlaneSideResult {
+        let x = if self.a >= 0.0 { bounds.min.x } else { bounds.max.x } as f32;
+        let y = if self.b >= 0.0 { bounds.min.y } else { bounds.max.y } as f32;
+        let z = if self.c >= 0.0 { bounds.min.z } else { bounds.max.z } as f32;
+        on_side(self.distance_xyz(x, y, z))
+    }
+
+    pub fn on_side_translate(&self, bounds: Aabb, translation: Vec3) -> PlaneSideResult {
+        let backward_x = if self.a >= 0.0 { bounds.min.x } else { bounds.max.x } as f32;
+        let backward_y = if self.b >= 0.0 { bounds.min.y } else { bounds.max.y } as f32;
+        let backward_z = if self.c >= 0.0 { bounds.min.z } else { bounds.max.z } as f32;
+        let distance = self.distance_xyz(
+            backward_x + translation.x,
+            backward_y + translation.y,
+            backward_z + translation.z,
+        );
+        match on_side(distance) {
+            PlaneSideResult::Outside => PlaneSideResult::Outside,
+            _ => PlaneSideResult::Intersects,
+        }
+    }
+
+    pub fn negated(&self) -> Plane {
+        Plane {
+            a: -self.a,
+            b: -self.b,
+            c: -self.c,
+            d: -self.d,
+        }
+    }
+
+    pub fn translate(&mut self, translation: Vec3) {
+        self.d += (self.a * translation.x) + (self.b * translation.y) + (self.c * translation.z);
     }
 }
 
@@ -155,7 +245,7 @@ pub fn intersection_with_planes(p1: &Plane, p2: &Plane, p3: &Plane) -> Vec3 {
     let z: f64 = (p1b * ad3) + (p2b * ad1) + (p3b * ad2);
     let w: f64 = -((p1a * bc3) + (p2a * bc1) + (p3a * bc2));
 
-    // better to have detectable invalid values than to have reaaaaaaally big values
+    // better to have detectable invalid values than to have really big values
     if w > -NORMAL_EPSILON && w < NORMAL_EPSILON {
         Vec3::splat(f32::NAN)
     } else {
@@ -167,11 +257,43 @@ pub fn intersection_with_planes(p1: &Plane, p2: &Plane, p3: &Plane) -> Vec3 {
     }
 }
 
-pub fn intersection_with_ray(start: Vec3, end: Vec3, sdist: f32, edist: f32) -> Vec3 {
-    let vector = end - start;
-    let length = edist - sdist;
-    let delta = edist / length;
+pub fn intersection_with_ray(start: Vec3, end: Vec3, start_dist: f32, end_dist: f32) -> Vec3 {
+    let vector = end.sub(start);
+    let length = end_dist - start_dist;
+    let delta = end_dist / length;
     end - (delta * vector)
 }
 
+// These methods are designed for clarity and readability,
+//	if speed is your concern do not use enums and use the floating point values directly!!
+pub fn on_side_epsilon(distance: f32, epsilon: f32) -> PlaneSideResult {
+    if distance > epsilon {
+        PlaneSideResult::Outside
+    } else if distance < -epsilon {
+        PlaneSideResult::Inside
+    } else {
+        PlaneSideResult::Intersects
+    }
+}
 
+pub fn on_side(distance: f32) -> PlaneSideResult {
+    on_side_epsilon(distance, DISTANCE_EPSILON)
+}
+
+pub fn translated(plane: &Plane, translation: Vec3) -> Plane {
+    Plane {
+        a: plane.a,
+        b: plane.b,
+        c: plane.c,
+        d: plane.d + plane.a * translation.x + plane.b * translation.y + plane.c * translation.z,
+    }
+}
+
+pub fn translated_xyz(plane: &Plane, x: f32, y: f32, z: f32) -> Plane {
+    Plane {
+        a: plane.a,
+        b: plane.b,
+        c: plane.c,
+        d: plane.d + plane.a * x + plane.b * y + plane.c * z,
+    }
+}
