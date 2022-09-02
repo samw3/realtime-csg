@@ -1,38 +1,58 @@
 //! Describes a CSG hierarchy
 
-use bevy::{math::Vec3};
+use crate::csg_geometry::{Aabb, Plane};
+use bevy::math::Vec3;
 
-struct CSGTree {
-    root_node: CSGNode,
+pub struct CsgTree<'a> {
+    root_node: CsgNode<'a>,
 }
 
-struct CSGNode
-{
-    node_type: CSGNodeType,
-    left: Option<Box<CSGNode>>,
-    right: Option<Box<CSGNode>>,
+pub struct CsgNode<'a> {
+    bounds: Aabb,
+    node_type: CsgNodeType,
+    left: Option<Box<CsgNode<'a>>>,
+    right: Option<Box<CsgNode<'a>>>,
+    parent: Option<&'a CsgNode<'a>>,
     local_translation: Vec3,
     translation: Vec3,
-    //planes: Vec<Plane>,
+    planes: Vec<Plane>,
 }
 
-enum CSGNodeType {
+pub enum CsgNodeType {
     Addition,
     Subtraction,
     Common,
     Brush,
 }
 
-impl CSGNode {
-    fn new(branch_operator: CSGNodeType, left: Option<CSGNode>, right: Option<CSGNode>) -> Self {
+impl<'a> CsgNode<'a> {
+    pub fn new(
+        branch_operator: CsgNodeType,
+        left: Option<CsgNode<'a>>,
+        right: Option<CsgNode<'a>>,
+    ) -> Self {
         Self {
+            bounds: Default::default(),
             node_type: branch_operator,
             left: left.map(Box::new),
             right: right.map(Box::new),
+            parent: None,
             local_translation: Vec3::ZERO,
             translation: Vec3::ZERO,
-            //planes: vec![],
+            planes: vec![],
+        }
+    }
+
+    pub fn brush(planes: Vec<Plane>) -> Self {
+        Self {
+            bounds: Default::default(),
+            node_type: CsgNodeType::Brush,
+            left: None,
+            right: None,
+            parent: None,
+            local_translation: Default::default(),
+            translation: Default::default(),
+            planes,
         }
     }
 }
-
