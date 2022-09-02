@@ -297,3 +297,40 @@ pub fn translated_xyz(plane: &Plane, x: f32, y: f32, z: f32) -> Plane {
         d: plane.d + plane.a * x + plane.b * y + plane.c * z,
     }
 }
+
+pub enum PolygonCategory {
+    Inside,
+    Aligned,
+    ReverseAligned,
+    Outside,
+}
+
+pub struct Polygon {
+    first_index: i16,
+    plane_index: i16,
+    category: PolygonCategory,
+    visible: bool,
+    bounds: Aabb,
+}
+
+impl Default for Polygon {
+    fn default() -> Self {
+        Self {
+            first_index: -1,
+            plane_index: -1,
+            category: PolygonCategory::Aligned,
+            visible: false,
+            bounds: Aabb::new(),
+        }
+    }
+}
+
+pub enum PolygonSplitResult {
+    CompletelyInside,		// Polygon is completely inside half-space defined by plane
+    CompletelyOutside,		// Polygon is completely outside half-space defined by plane
+
+    Split,					// Polygon has been split into two parts by plane
+
+    PlaneAligned,			// Polygon is aligned with cutting plane and the polygons' normal points in the same direction
+    PlaneOppositeAligned	// Polygon is aligned with cutting plane and the polygons' normal points in the opposite direction
+}

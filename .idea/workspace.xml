@@ -15,8 +15,7 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="302ce821-65a8-4a60-ba78-5bca549491cd" name="Changes" comment="Porting CSGGeometry">
-      <change afterPath="$PROJECT_DIR$/rustfmt.toml" afterDir="false" />
+    <list default="true" id="302ce821-65a8-4a60-ba78-5bca549491cd" name="Changes" comment="More Porting CSGGeometry">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/csg_geometry.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/csg_geometry.rs" afterDir="false" />
     </list>
@@ -107,7 +106,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1661683434241</updated>
-      <workItem from="1661683435342" duration="27888000" />
+      <workItem from="1661683435342" duration="29478000" />
     </task>
     <task id="LOCAL-00001" summary="Initial project set up">
       <created>1661862709227</created>
@@ -130,7 +129,14 @@
       <option name="project" value="LOCAL" />
       <updated>1661862764483</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="More Porting CSGGeometry">
+      <created>1662046505181</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1662046505181</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -152,7 +158,8 @@
     <MESSAGE value="Initial project set up" />
     <MESSAGE value="Porting CSGHierarchy" />
     <MESSAGE value="Porting CSGGeometry" />
-    <option name="LAST_COMMIT_MESSAGE" value="Porting CSGGeometry" />
+    <MESSAGE value="More Porting CSGGeometry" />
+    <option name="LAST_COMMIT_MESSAGE" value="More Porting CSGGeometry" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
