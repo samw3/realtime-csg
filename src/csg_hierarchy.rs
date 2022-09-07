@@ -5,14 +5,14 @@ use bevy::math::Vec3;
 
 pub struct CsgTreeIterator<'a> {
   tree: &'a CsgTree<'a>,
-  iterator_stack: Vec<&'a CsgNode<'a>>,
+  stack: Vec<&'a CsgNode<'a>>,
 }
 
 impl<'a> CsgTreeIterator<'a> {
   fn new(tree: &'a CsgTree<'a>) -> Self {
     Self {
       tree,
-      iterator_stack: vec![&tree.root_node],
+      stack: vec![&tree.root_node],
     }
   }
 }
@@ -22,23 +22,22 @@ impl<'a> Iterator for CsgTreeIterator<'a> {
   type Item = &'a CsgNode<'a>;
 
   fn next(&mut self) -> Option<Self::Item> {
-    if self.iterator_stack.is_empty() {
-      None
-    } else if let Some(node) = self.iterator_stack.pop() {
-      match node.node_type {
-        CsgNodeType::Brush => Some(node),
-        _ => {
-          if let Some(left) = &node.left {
-            self.iterator_stack.push(left);
+    match self.stack.pop() {
+      Some(node) => {
+        match node.node_type {
+          CsgNodeType::Brush => (),
+          _ => {
+            if let Some(left) = &node.left {
+              self.stack.push(left);
+            }
+            if let Some(right) = &node.right {
+              self.stack.push(right);
+            }
           }
-          if let Some(right) = &node.right {
-            self.iterator_stack.push(right);
-          }
-          Some(node)
         }
+        Some(node)
       }
-    } else {
-      None
+      None => None,
     }
   }
 }
@@ -147,6 +146,7 @@ mod tests {
       ));
       assert!(matches!(iter.next().unwrap().node_type, CsgNodeType::Brush));
       assert!(matches!(iter.next().unwrap().node_type, CsgNodeType::Brush));
+      assert!(matches!(iter.next(), None));
     }
   }
 
@@ -169,9 +169,13 @@ mod tests {
         CsgNodeType::Addition
       ));
       assert!(matches!(iter.next().unwrap().node_type, CsgNodeType::Brush));
-      assert!(matches!(iter.next().unwrap().node_type, CsgNodeType::Subtraction));
+      assert!(matches!(
+        iter.next().unwrap().node_type,
+        CsgNodeType::Subtraction
+      ));
       assert!(matches!(iter.next().unwrap().node_type, CsgNodeType::Brush));
       assert!(matches!(iter.next().unwrap().node_type, CsgNodeType::Brush));
+      assert!(matches!(iter.next(), None));
     }
   }
 }
