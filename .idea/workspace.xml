@@ -3,9 +3,9 @@
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
-  <component name="CMakePresetLoader"><![CDATA[{
-  "useNewFormat": true
-}]]></component>
+  <component name="CMakePresetLoader">{
+  &quot;useNewFormat&quot;: true
+}</component>
   <component name="CMakeSettings">
     <configurations>
       <configuration PROFILE_NAME="Debug" ENABLED="true" CONFIG_NAME="Debug" />
@@ -15,9 +15,15 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="302ce821-65a8-4a60-ba78-5bca549491cd" name="Changes" comment="Finished porting CSGGeometry">
+    <list default="true" id="302ce821-65a8-4a60-ba78-5bca549491cd" name="Changes" comment="Finished porting CsgHierarchy">
+      <change afterPath="$PROJECT_DIR$/src/csg_serde.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/csg_utility.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rustfmt.toml" beforeDir="false" afterPath="$PROJECT_DIR$/rustfmt.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/csg_geometry.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/csg_geometry.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/csg_hierarchy.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/csg_hierarchy.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,6 +42,9 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitToolBoxStore">
+    <option name="projectConfigVersion" value="5" />
   </component>
   <component name="MacroExpansionManager">
     <option name="directoryName" value="38puv5l5" />
@@ -66,10 +75,10 @@
     "last_opened_file_path": "/Users/samw3/prj/Make/realtime-csg",
     "nodejs_package_manager_path": "npm",
     "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
-    "settings.editor.selected.configurable": "language.rust.rustfmt"
+    "settings.editor.selected.configurable": "reference.settingsdialog.IDE.editor.colors.General"
   }
 }]]></component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Cargo.Test csg_hierarchy::tests">
     <configuration name="Expand realtime_csg::csg_geometry" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="command" value="expand --lib --color=always --theme=Dracula --tests csg_geometry" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -87,8 +96,62 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Test csg_hierarchy::tests" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package realtime-csg --lib csg_hierarchy::tests" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test csg_hierarchy::tests::test_tree_iter_3_nodes" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package realtime-csg --lib csg_hierarchy::tests::test_tree_iter_3_nodes -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test csg_hierarchy::tests::test_tree_iter_root_only" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package realtime-csg --lib csg_hierarchy::tests::test_tree_iter_root_only -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test csg_hierarchy::tests" />
+        <item itemvalue="Cargo.Test csg_hierarchy::tests::test_tree_iter_3_nodes" />
+        <item itemvalue="Cargo.Test csg_hierarchy::tests::test_tree_iter_root_only" />
         <item itemvalue="Cargo.Expand realtime_csg::csg_geometry" />
       </list>
     </recent_temporary>
@@ -97,6 +160,7 @@
     <option name="externalLinter" value="Clippy" />
     <option name="runExternalLinterOnTheFly" value="true" />
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+    <option name="version" value="2" />
   </component>
   <component name="RustfmtProjectSettings">
     <option name="useRustfmt" value="true" />
@@ -109,7 +173,9 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1661683434241</updated>
-      <workItem from="1661683435342" duration="31142000" />
+      <workItem from="1661683435342" duration="44142000" />
+      <workItem from="1662295278800" duration="2153000" />
+      <workItem from="1662422830667" duration="8692000" />
     </task>
     <task id="LOCAL-00001" summary="Initial project set up">
       <created>1661862709227</created>
@@ -146,7 +212,14 @@
       <option name="project" value="LOCAL" />
       <updated>1662082342353</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Finished porting CsgHierarchy">
+      <created>1662084013094</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1662084013094</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -170,7 +243,8 @@
     <MESSAGE value="Porting CSGGeometry" />
     <MESSAGE value="More Porting CSGGeometry" />
     <MESSAGE value="Finished porting CSGGeometry" />
-    <option name="LAST_COMMIT_MESSAGE" value="Finished porting CSGGeometry" />
+    <MESSAGE value="Finished porting CsgHierarchy" />
+    <option name="LAST_COMMIT_MESSAGE" value="Finished porting CsgHierarchy" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
