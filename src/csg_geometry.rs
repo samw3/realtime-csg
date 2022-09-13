@@ -1,7 +1,10 @@
 //! Geometry
 
 use bevy::math::{IVec3, Vec3};
+use bevy::utils::default;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
+use std::default;
 use std::hash::{Hash, Hasher};
 use std::ops::Sub;
 
@@ -116,6 +119,7 @@ impl Aabb {
   }
 }
 
+#[derive(Clone)]
 pub struct HalfEdge {
   next_index: i16,
   twin_index: i16,
@@ -299,6 +303,7 @@ pub fn translated_xyz(plane: &Plane, x: f32, y: f32, z: f32) -> Plane {
   }
 }
 
+#[derive(Clone)]
 pub enum PolygonCategory {
   Inside,
   Aligned,
@@ -306,12 +311,25 @@ pub enum PolygonCategory {
   Outside,
 }
 
+#[derive(Clone)]
 pub struct Polygon {
   first_index: i16,
   plane_index: i16,
   category: PolygonCategory,
   visible: bool,
   bounds: Aabb,
+}
+
+impl Polygon {
+  fn new(plane_index: usize) -> Self {
+    Self {
+      first_index: 0,
+      plane_index: plane_index as i16,
+      category: PolygonCategory::Inside,
+      visible: false,
+      bounds: Default::default(),
+    }
+  }
 }
 
 impl Default for Polygon {
@@ -334,4 +352,248 @@ pub enum PolygonSplitResult {
 
   PlaneAligned, // Polygon is aligned with cutting plane and the polygons' normal points in the same direction
   PlaneOppositeAligned, // Polygon is aligned with cutting plane and the polygons' normal points in the opposite direction
+}
+
+pub struct EdgeIntersection<'a> {
+  plane_indices: [i16; 2],
+  edge: &'a HalfEdge,
+}
+
+pub struct PointIntersection<'a> {
+  edges: Vec<EdgeIntersection<'a>>,
+  plane_indices: HashSet<i16>,
+  vertex_index: i16,
+}
+
+impl<'a> PointIntersection<'a> {
+  pub fn new(vertex_index: i16, planes: &Vec<i16>) -> Self {
+    let mut plane_indices = HashSet::new();
+    for plane in planes {
+      plane_indices.insert(*plane);
+    }
+    Self {
+      edges: vec![],
+      plane_indices,
+      vertex_index,
+    }
+  }
+}
+
+#[derive(Clone)]
+pub struct CsgMesh {
+  bounds: Aabb,
+  polygons: Vec<Polygon>,
+  edges: Vec<HalfEdge>,
+  vertices: Vec<Vec3>,
+  planes: Vec<Plane>,
+}
+
+pub fn create_from_planes(brush_planes: Vec<Plane>) -> CsgMesh {
+  let mut planes: Vec<Plane> = brush_planes.clone();
+
+  let mut point_intersections: Vec<PointIntersection> =
+    Vec::with_capacity(planes.len() * planes.len());
+  let mut intersecting_planes: Vec<i16> = vec![];
+  let mut vertices: Vec<Vec3> = vec![];
+  let mut edges: Vec<HalfEdge> = vec![];
+
+  for plane_index_1 in 0..(planes.len() - 2) {
+    let plane1 = &planes[plane_index_1];
+    for plane_index_2 in (plane_index_1 + 1)..(planes.len() - 1) {
+      let plane2 = &planes[plane_index_2];
+      'skip_intersection: for plane_index3 in (plane_index_2 + 1)..(planes.len()) {
+        let plane3 = &planes[plane_index3];
+        let vertex = intersection_with_planes(plane1, plane2, plane3);
+        if vertex.is_nan() || !vertex.is_finite() {
+          continue;
+        }
+        intersecting_planes.clear();
+        intersecting_planes.push(plane_index_1 as i16);
+        intersecting_planes.push(plane_index_2 as i16);
+        intersecting_planes.push(plane_index3 as i16);
+        for plane_index4 in 0..planes.len() {
+          if plane_index4 == plane_index_1
+            || plane_index4 == plane_index_2
+            || plane_index4 == plane_index3
+          {
+            continue;
+          }
+          let plane4 = &planes[plane_index4];
+          let side = plane4.on_side_vec3(vertex);
+          match side {
+            PlaneSideResult::Intersects => {
+              if plane_index4 < plane_index3 {
+                continue 'skip_intersection;
+              }
+              intersecting_planes.push(plane_index4 as i16);
+            }
+            PlaneSideResult::Outside => {
+              continue 'skip_intersection;
+            }
+            _ => {}
+          }
+          let vertex_index = vertices.len() as i16;
+          vertices.push(vertex);
+          point_intersections.push(PointIntersection::new(vertex_index, &intersecting_planes));
+        }
+      }
+    }
+  }
+  let mut found_planes: [i16; 2] = default();
+  // Find all our intersection edges which are formed by a pair of planes
+  // (this could probably be done inside the previous loop)
+  for i in 0..point_intersections.len() {
+    let mut point_intersection_a = &mut point_intersections[i];
+    for j in (i + 1)..point_intersections.len() {
+      let point_intersection_b = &mut point_intersections[j];
+      let planes_indices_a = &point_intersection_a.plane_indices;
+      let planes_indices_b = &point_intersection_b.plane_indices;
+
+      let mut found_plane_index = 0;
+      for current_plane_index in planes_indices_a {
+        if !planes_indices_b.contains(current_plane_index) {
+          continue;
+        }
+
+        found_planes[found_plane_index] = *current_plane_index;
+        found_plane_index += 1;
+
+        if found_plane_index == 2 {
+          break;
+        }
+      }
+
+      // If foundPlaneIndex is 0 or 1 then either this combination does not exist,
+      // or only goes trough one point
+      if found_plane_index < 2 {
+        continue;
+      }
+
+      // Create our found intersection edge
+      let half_edge_a_index = edges.len() as i16;
+      let half_edge_b_index = half_edge_a_index + 1;
+
+      let mut half_edge_a = HalfEdge {
+        next_index: 0,
+        twin_index: half_edge_b_index,
+        vertex_index: point_intersection_a.vertex_index,
+        polygon_index: 0,
+      };
+      edges.push(half_edge_a);
+
+      let mut half_edge_b = HalfEdge {
+        next_index: 0,
+        twin_index: half_edge_a_index,
+        vertex_index: point_intersection_b.vertex_index,
+        polygon_index: 0,
+      };
+      edges.push(half_edge_b);
+
+      // Add it to our points
+      point_intersection_a.edges.push(EdgeIntersection {
+        plane_indices: [found_planes[0], found_planes[1]],
+        edge: &edges[half_edge_a_index as usize],
+      });
+      point_intersection_b.edges.push(EdgeIntersection {
+        plane_indices: [found_planes[0], found_planes[1]],
+        edge: &edges[half_edge_b_index as usize],
+      })
+    }
+  }
+
+  let mut polygons = vec![];
+  for i in 0..planes.len() {
+    polygons.push(Polygon::new(i));
+  }
+
+  let mut bounds = Aabb::default();
+  let mut direction = Vec3::default();
+  let mut i = point_intersections.len() - 1;
+  while i >= 0 {
+    let mut point_intersection = &mut point_intersections[i];
+    let mut point_edges = &mut point_intersection.edges;
+
+    // Make sure that we have at least 2 edges ...
+    // This may happen when a plane only intersects at a single edge.
+    if point_edges.len() <= 2 {
+      point_intersections.remove(i);
+      continue;
+    }
+
+    let vertex_index = point_intersection.vertex_index;
+    let vertex = vertices[vertex_index as usize];
+
+    for j in 0..(point_edges.len() - 1) {
+      let edge1 = &mut point_edges[j];
+      for k in (j + 1)..point_edges.len() {
+        let edge2 = &mut point_edges[k];
+        let mut plane_index_1;
+        let mut plane_index_2;
+        // Determine if and which of our 2 planes are identical
+        if edge1.plane_indices[0] == edge2.plane_indices[0] {
+          plane_index_1 = 0;
+          plane_index_2 = 0;
+        } else if edge1.plane_indices[0] == edge2.plane_indices[1] {
+          plane_index_1 = 0;
+          plane_index_2 = 1;
+        } else if edge1.plane_indices[1] == edge2.plane_indices[0] {
+          plane_index_1 = 1;
+          plane_index_2 = 0;
+        } else if edge1.plane_indices[1] == edge2.plane_indices[0] {
+          plane_index_1 = 1;
+          plane_index_2 = 1;
+        } else {
+          continue;
+        }
+
+        let mut ingoing: &mut HalfEdge;
+        let mut outgoing: &mut HalfEdge;
+        let mut outgoing_index;
+
+        let shared_plane = planes[edge1.plane_indices[plane_index_1] as usize];
+        let edge1_plane = planes[edge1.plane_indices[1 - plane_index_1] as usize];
+        let edge2_plane = planes[edge2.plane_indices[1 - plane_index_2] as usize];
+
+        direction = shared_plane.get_normal().cross(edge1_plane.get_normal());
+
+        // Determine the orientation of our two edges to determine
+        // which edge is in-going, and which one is out-going
+        if direction.dot(edge2_plane.get_normal()) < 0.0 {
+          ingoing = &mut edge2.edge;
+          outgoing_index = edge1.edge.twin_index;
+          outgoing = &mut edges[outgoing_index as usize];
+        } else {
+          ingoing = &mut edge1.edge;
+          outgoing_index = edge2.edge.twin_index;
+          outgoing = &mut edges[outgoing_index as usize];
+        }
+
+        // Link the out-going half-edge to the in-going half-edge
+        ingoing.next_index = outgoing_index;
+
+        // Add reference to polygon to half-edge, and make sure our
+        // polygon has a reference to a half-edge
+        // Since a half-edge, in this case, serves as a circular
+        // linked list this just works.
+        let polygon_index = edge1.plane_indices[plane_index_1];
+
+        ingoing.polygon_index = polygon_index;
+        outgoing.polygon_index = polygon_index;
+
+        let polygon = &mut polygons[polygon_index as usize];
+        polygon.first_index = outgoing_index;
+        polygon.bounds.add_vec3(vertex);
+      }
+    }
+    bounds.add_vec3(vertex);
+    i -= 1;
+  }
+
+  CsgMesh {
+    bounds,
+    polygons,
+    edges,
+    vertices,
+    planes,
+  }
 }
