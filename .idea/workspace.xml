@@ -15,11 +15,9 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="302ce821-65a8-4a60-ba78-5bca549491cd" name="Changes" comment="Makes CsgTreeIterator more rusty.">
-      <change afterPath="$PROJECT_DIR$/src/csg_categorization.rs" afterDir="false" />
+    <list default="true" id="302ce821-65a8-4a60-ba78-5bca549491cd" name="Changes" comment="Adds csg_geometry create_from_planes and supporting members.&#10;Stubs csg_categorization.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/csg_geometry.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/csg_geometry.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -175,7 +173,7 @@
       <updated>1661683434241</updated>
       <workItem from="1661683435342" duration="44142000" />
       <workItem from="1662295278800" duration="2153000" />
-      <workItem from="1662422830667" duration="33061000" />
+      <workItem from="1662422830667" duration="36441000" />
     </task>
     <task id="LOCAL-00001" summary="Initial project set up">
       <created>1661862709227</created>
@@ -261,7 +259,14 @@
       <option name="project" value="LOCAL" />
       <updated>1662557110017</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Adds csg_geometry create_from_planes and supporting members.&#10;Stubs csg_categorization.">
+      <created>1663077798208</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1663077798208</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -290,7 +295,8 @@
     <MESSAGE value="Project file update" />
     <MESSAGE value="Adds CsgTreeIterator." />
     <MESSAGE value="Makes CsgTreeIterator more rusty." />
-    <option name="LAST_COMMIT_MESSAGE" value="Makes CsgTreeIterator more rusty." />
+    <MESSAGE value="Adds csg_geometry create_from_planes and supporting members.&#10;Stubs csg_categorization." />
+    <option name="LAST_COMMIT_MESSAGE" value="Adds csg_geometry create_from_planes and supporting members.&#10;Stubs csg_categorization." />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

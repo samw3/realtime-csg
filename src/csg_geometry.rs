@@ -388,6 +388,62 @@ pub struct CsgMesh {
   planes: Vec<Plane>,
 }
 
+impl CsgMesh {
+  /// Splits a half edge
+  pub fn edge_split(&mut self, edge: &mut HalfEdge, vertex: Vec3) -> &HalfEdge {
+    /*
+     original:
+                edge
+     *<======================
+      ---------------------->*
+                twin
+
+     split:
+        newEdge		thisEdge
+     *<=========*<===========
+      --------->*----------->*
+        thisTwin	newTwin
+    */
+    let mut this_edge = edge;
+    let this_twin_index = edge.twin_index;
+    let mut this_twin = &mut self.edges[this_twin_index as usize];
+    let this_edge_index = this_twin.twin_index;
+
+    let new_edge_index = self.edges.len() as i16;
+
+    let new_twin_index = (new_edge_index + 1) as i16;
+    let vertex_index = self.vertices.len() as i16;
+
+    let new_edge = HalfEdge {
+      next_index: this_edge.next_index,
+      twin_index: this_twin_index,
+      vertex_index: this_edge.vertex_index,
+      polygon_index: this_edge.polygon_index,
+    };
+
+    let new_twin = HalfEdge {
+      next_index: this_twin.next_index,
+      twin_index: this_edge_index,
+      vertex_index: this_twin.vertex_index,
+      polygon_index: this_twin.polygon_index,
+    };
+
+    this_edge.vertex_index = vertex_index;
+    this_twin.vertex_index = vertex_index;
+    this_edge.next_index = new_edge_index;
+    this_twin.next_index = new_twin_index;
+    this_edge.twin_index = new_twin_index;
+    this_twin.twin_index = new_edge_index;
+
+    self.edges.push(new_edge);
+    let new_edge = self.edges.last().unwrap();
+
+    self.edges.push(new_twin);
+    self.vertices.push(vertex);
+    new_edge
+  }
+}
+
 pub fn create_from_planes(brush_planes: Vec<Plane>) -> CsgMesh {
   let mut planes: Vec<Plane> = brush_planes.clone();
 
